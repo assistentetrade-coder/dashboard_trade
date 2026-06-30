@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mineiraço · Painel de Trade Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    /* Paleta clara baseada na marca Mineiraço */
+    --bg:#faf5e9;
+    --bg-soft:#f3ecdb;
+    --panel:#ffffff;
+    --panel-2:#fbf7ee;
+    --line:#e6dbc2;
+    --ink:#3a2a18;
+    --ink-dim:#79654a;
+    --ink-faint:#a4926f;
+    --gold:#f0c419;
+    --gold-deep:#caa12a;
+    --gold-soft:#e0b32b;
+    --brown:#4a2f1d;
+    --brown-deep:#2f1d10;
+    --terra:#c2693c;
+    --green:#7a9a52;
+    --blue:#4c81a0;
+    --font-display:'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body:'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono:'Noto Sans', 'Courier New', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold); color:var(--brown-deep);}
+  :focus-visible{outline:2px solid var(--gold-deep); outline-offset:2px; border-radius:4px;}
+
+  /* ---------- top bar ---------- */
+  header.top{
+    position:relative;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 36px;
+    background:var(--brown);
+    overflow:hidden;
+    box-shadow:0 2px 0 var(--gold);
+  }
+  header.top::after{
+    content:'';
+    position:absolute; right:-20px; bottom:-46px; width:280px; height:140px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(240,196,25,0.16), transparent 70%);
+    pointer-events:none;
+  }
+  .brand{display:flex; align-items:center; gap:16px; position:relative; z-index:1;}
+  .brand .mark{ height:38px; width:auto; }
+  .brand .divider{width:1px; height:30px; background:rgba(247,238,221,0.18);}
+  .brand h1{
+    font-family:var(--font-display); font-weight:600; font-size:19px; margin:0;
+    letter-spacing:.2px; color:#fbf7ee;
+  }
+  .brand .sub{font-size:10.5px; color:#d8c8a4; letter-spacing:.13em; text-transform:uppercase; margin-top:2px;}
+  .file-pill{
+    display:flex; align-items:center; gap:10px;
+    border:1px solid rgba(247,238,221,0.2); background:rgba(255,255,255,0.06);
+    padding:8px 14px; border-radius:30px; font-size:13px; color:#e7dcc2;
+  }
+  .file-pill .dot{width:7px;height:7px;border-radius:50%; background:var(--gold);}
+  .btn{
+    border:1px solid var(--gold); background:transparent; color:var(--gold);
+    padding:8px 16px; border-radius:30px; font-size:13px; cursor:pointer;
+    font-family:var(--font-body); transition:all .15s ease;
+  }
+  .btn:hover{background:var(--gold); color:var(--brown-deep);}
+  .btn.dark{border-color:var(--brown); color:var(--brown);}
+  .btn.dark:hover{background:var(--brown); color:#fbf7ee;}
+
+  main{max-width:1320px; margin:0 auto; padding:0 36px 80px;}
+
+  /* ---------- drop zone ---------- */
+  #dropzone{
+    margin-top:64px;
+    border:1.5px dashed var(--line);
+    border-radius:18px;
+    padding:76px 40px;
+    text-align:center;
+    background:var(--panel);
+    transition:all .2s ease;
+    cursor:pointer;
+    box-shadow:0 1px 2px rgba(58,42,24,0.06), 0 1px 3px 1px rgba(58,42,24,0.05);
+  }
+  #dropzone.drag{border-color:var(--gold-deep); background:var(--panel-2);}
+  #dropzone .icon{
+    width:60px;height:60px;margin:0 auto 22px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#fbecc0,#f3dc94);
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);
+  }
+  #dropzone h2{font-family:var(--font-display); font-size:25px; font-weight:600; margin:0 0 10px; color:var(--brown);}
+  #dropzone p{color:var(--ink-dim); font-size:14.5px; max-width:440px; margin:0 auto 26px;}
+  #fileInput{display:none;}
+  .hint{font-size:12px; color:var(--ink-faint); margin-top:18px;}
+
+  /* ---------- state tabs ---------- */
+  #appView{display:none;}
+  .tabs{
+    display:flex; gap:8px; flex-wrap:wrap;
+    margin:34px 0 26px; padding-bottom:18px; border-bottom:1px solid var(--line);
+  }
+  .tab{
+    padding:9px 18px; border-radius:9px; font-size:13.5px; cursor:pointer;
+    color:var(--ink-dim); border:1px solid var(--line); white-space:nowrap;
+    font-family:var(--font-body); background:var(--panel);
+  }
+  .tab:hover{color:var(--ink); border-color:var(--gold-deep);}
+  .tab.active{
+    background:var(--brown); color:#fbf7ee; font-weight:600; border-color:var(--brown);
+  }
+  .tab .n{opacity:.65; font-size:11px; margin-left:5px;}
+
+  /* ---------- KPI row ---------- */
+  .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:30px; }
+  .kpi{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:22px 22px 18px; position:relative; overflow:hidden;
+    box-shadow:0 1px 2px rgba(58,42,24,0.06), 0 1px 3px 1px rgba(58,42,24,0.05);
+  }
+  .kpi::before{
+    content:''; position:absolute; top:0; left:0; width:3px; height:100%;
+    background:var(--accent, var(--gold-deep));
+  }
+  .kpi .label{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint);}
+  .kpi .value{font-family:var(--font-display); font-size:33px; font-weight:600; margin-top:8px; color:var(--brown);}
+  .kpi .foot{font-size:12px; color:var(--ink-dim); margin-top:6px;}
+
+  /* ---------- grid panels ---------- */
+  .grid2{display:grid; grid-template-columns:1.3fr 1fr; gap:18px; margin-bottom:18px;}
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:24px;
+    box-shadow:0 1px 2px rgba(58,42,24,0.06), 0 1px 3px 1px rgba(58,42,24,0.05);
+  }
+  .panel h3{
+    font-family:var(--font-display); font-size:16px; font-weight:600; margin:0 0 18px; color:var(--brown);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .panel h3 span.tag{font-family:var(--font-mono); font-size:10.5px; color:var(--ink-faint); font-weight:400;}
+
+  .bar-row{display:flex; align-items:center; gap:12px; margin-bottom:13px;}
+  .bar-row .name{width:150px; font-size:12.5px; color:var(--ink-dim); flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .bar-track{flex:1; height:9px; background:var(--bg-soft); border-radius:5px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:5px; background:linear-gradient(90deg,var(--gold-soft),var(--gold-deep));}
+  .bar-val{width:56px; text-align:right; font-family:var(--font-mono); font-size:12px; color:var(--ink-dim); flex-shrink:0;}
+
+  .donut-wrap{display:flex; align-items:center; gap:22px; flex-wrap:wrap;}
+  .legend{display:flex; flex-direction:column; gap:9px; font-size:12.5px;}
+  .legend .li{display:flex; align-items:center; gap:8px; color:var(--ink-dim);}
+  .legend .sw{width:10px;height:10px;border-radius:3px; flex-shrink:0;}
+  .legend b{color:var(--brown); font-family:var(--font-mono); margin-left:auto; padding-left:14px;}
+
+  .week-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px;}
+  .week-cell{
+    background:var(--bg-soft); border-radius:10px; padding:14px 6px; text-align:center;
+    border:1px solid var(--line); cursor:pointer; transition:all .12s ease;
+  }
+  .week-cell:hover{border-color:var(--gold-deep); transform:translateY(-2px); box-shadow:0 3px 8px rgba(58,42,24,0.08);}
+  .week-cell .d{font-size:10.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em;}
+  .week-cell .v{font-family:var(--font-display); font-size:22px; margin-top:6px; color:var(--brown);}
+  .week-cell.hot{border-color:var(--gold-deep); background:#fbecc0;}
+
+  /* ---------- table ---------- */
+  .table-panel{margin-top:18px;}
+  .table-controls{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center;}
+  .search{
+    flex:1; min-width:200px; background:var(--bg-soft); border:1px solid var(--line); border-radius:9px;
+    padding:10px 14px; color:var(--ink); font-size:13.5px; font-family:var(--font-body);
+  }
+  .search:focus{outline:none; border-color:var(--gold-deep);}
+  select.fsel{
+    background:var(--bg-soft); border:1px solid var(--line); border-radius:9px; color:var(--ink-dim);
+    padding:10px 12px; font-size:13px; font-family:var(--font-body);
+  }
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  thead th{
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--ink-faint); padding:10px 12px; border-bottom:1px solid var(--line); font-weight:600;
+  }
+  tbody td{padding:10px 12px; border-bottom:1px solid var(--bg-soft); color:var(--ink-dim);}
+  tbody tr:hover{background:#fbf6e8;}
+  tbody td.strong{color:var(--brown); font-weight:700;}
+  .chip{
+    display:inline-block; padding:3px 11px; border-radius:8px; font-size:11px; font-weight:600;
+    background:var(--chip-bg, #fbecc0); color:var(--chip-fg, #8a6612);
+  }
+  .pager{display:flex; justify-content:space-between; align-items:center; margin-top:14px; font-size:12.5px; color:var(--ink-faint);}
+  .pager button{
+    background:var(--bg-soft); border:1px solid var(--line); color:var(--ink-dim); border-radius:7px;
+    padding:6px 12px; cursor:pointer; font-size:12.5px;
+  }
+  .pager button:disabled{opacity:.35; cursor:not-allowed;}
+
+  .info-note{
+    display:flex; gap:10px; align-items:flex-start; background:#fbf6e8; border:1px solid var(--line);
+    border-radius:12px; padding:14px 16px; font-size:12.5px; color:var(--ink-dim); margin-bottom:18px;
+  }
+  .info-note b{color:var(--brown);}
+
+  /* ---------- mapa da rede ---------- */
+  .state-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:14px;}
+  .state-card{
+    border:1px solid var(--line); border-radius:12px; padding:16px; cursor:pointer;
+    background:var(--panel-2); transition:all .15s ease;
+  }
+  .state-card:hover{border-color:var(--c, var(--gold-deep)); transform:translateY(-2px); box-shadow:0 4px 12px rgba(58,42,24,0.08);}
+  .sc-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px;}
+  .sc-name{font-family:var(--font-display); font-weight:600; font-size:14.5px; color:var(--brown);}
+  .sc-lojas{font-family:var(--font-mono); font-size:15px; color:var(--ink);}
+  .sc-lojas small{font-size:10px; color:var(--ink-faint); font-family:var(--font-body);}
+  .sc-bar-track{height:7px; background:var(--bg-soft); border-radius:5px; overflow:hidden; margin-bottom:10px;}
+  .sc-bar-fill{height:100%; width:var(--bar); border-radius:5px; background:var(--c, var(--gold-deep));}
+  .sc-meta{display:flex; justify-content:space-between; gap:6px; font-size:10.5px; color:var(--ink-faint); flex-wrap:wrap;}
+
+  /* ---------- mapa de calor ---------- */
+  .heatmap-wrap{overflow-x:auto;}
+  table.heatmap{border-collapse:separate; border-spacing:4px; font-size:11.5px;}
+  table.heatmap th{font-weight:600; color:var(--ink-faint); padding:6px 8px; text-align:center; white-space:nowrap;}
+  table.heatmap .hm-corner{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em;}
+  table.heatmap .hm-row-label{text-align:left; color:var(--brown); font-weight:700; white-space:nowrap; padding-right:14px;}
+  td.hm-cell{
+    width:46px; height:38px; text-align:center; border-radius:8px; font-weight:700;
+    font-family:var(--font-mono); transition:transform .1s ease;
+  }
+  td.hm-cell:hover{transform:scale(1.08);}
+
+  /* ---------- roteiro / agenda de visitas ---------- */
+  .today-banner{
+    border:1px solid var(--gold-deep); background:linear-gradient(135deg,#fbecc0,#fbf6e8);
+    border-radius:14px; padding:18px 22px; margin-bottom:18px;
+  }
+  .today-banner .tb-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;}
+  .today-banner h3{font-family:var(--font-display); font-size:16px; margin:0; color:var(--brown);}
+  .today-banner .tb-sub{font-size:11.5px; color:var(--ink-dim);}
+  .today-empty{font-size:13px; color:var(--ink-faint); font-style:italic;}
+
+  /* accordion (agrupado por agência) */
+  .accordion{display:flex; flex-direction:column; gap:8px;}
+  .acc-item{
+    background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden;
+  }
+  .today-banner .acc-item{border-color:#efd99a;}
+  .acc-item summary{
+    list-style:none; cursor:pointer; padding:11px 16px; display:flex; align-items:center; justify-content:space-between;
+    font-size:13px; color:var(--brown); font-weight:700; user-select:none;
+  }
+  .acc-item summary::-webkit-details-marker{display:none;}
+  .acc-item summary::before{content:'▸'; color:var(--ink-faint); margin-right:8px; font-size:11px; transition:transform .15s ease; display:inline-block;}
+  .acc-item[open] summary::before{transform:rotate(90deg);}
+  .acc-item summary > span:first-child{flex:1; display:flex; align-items:center;}
+  .acc-count{font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); font-weight:400;}
+  .acc-body{padding:4px 16px 14px; display:flex; flex-wrap:wrap; gap:7px; border-top:1px solid var(--bg-soft);}
+  .mini-chip{
+    background:var(--bg-soft); border-radius:8px; padding:6px 12px;
+    font-size:11.5px; color:var(--ink); font-weight:700;
+  }
+
+  /* abas de dia do roteiro semanal */
+  .day-pills{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:16px;}
+  .day-pill{
+    padding:7px 14px; border-radius:20px; border:1px solid var(--line); background:var(--bg-soft);
+    font-size:12.5px; color:var(--ink-dim); cursor:pointer; display:flex; align-items:center; gap:7px;
+  }
+  .day-pill .dp-n{font-family:var(--font-mono); font-size:11px; color:var(--ink-faint);}
+  .day-pill:hover{border-color:var(--gold-deep);}
+  .day-pill.active{background:var(--brown); border-color:var(--brown); color:#fbf7ee;}
+  .day-pill.active .dp-n{color:#e7dcc2;}
+  .day-pill.is-empty{opacity:.5;}
+  .rd-empty-full{font-size:13px; color:var(--ink-faint); font-style:italic; padding:10px 0;}
+
+  /* ---------- análise de ritmo de visitas ---------- */
+  .rhythm-explain{font-size:12.5px; color:var(--ink-dim); margin:-4px 0 16px; line-height:1.5; max-width:780px;}
+  .rhythm-explain b{color:var(--brown);}
+  .rhythm-kpis{display:flex; gap:24px; margin-bottom:16px; flex-wrap:wrap;}
+  .rk{display:flex; flex-direction:column;}
+  .rk-n{font-family:var(--font-display); font-size:26px; font-weight:800; color:var(--brown);}
+  .rk-l{font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em;}
+  .rhythm-body{flex-direction:column; flex-wrap:nowrap;}
+  .rhythm-item{
+    display:flex; flex-direction:column; gap:2px; padding:8px 0; border-bottom:1px dashed var(--bg-soft); width:100%;
+  }
+  .rhythm-item:last-child{border-bottom:none;}
+  .ri-store{font-weight:700; color:var(--brown); font-size:12.5px;}
+  .ri-meta{font-size:11.5px; color:var(--ink-faint);}
+  .ri-meta b{color:var(--ink-dim);}
+
+  footer.note{margin-top:40px; font-size:11.5px; color:var(--ink-faint); text-align:center;}
+
+  @media (max-width:900px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    .grid2{grid-template-columns:1fr;}
+    main{padding:0 18px 60px;}
+    header.top{padding:16px 18px;}
+    .day-pills{gap:5px;}
+    .day-pill{padding:6px 11px; font-size:11.5px;}
+    .week-grid{grid-template-columns:repeat(4,1fr);}
+    .state-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <img class="mark" alt="Mineiraço" src="data:image/png;base64,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">
+    <div class="divider"></div>
+    <div>
+      <h1>Painel de Trade Marketing</h1>
+      <div class="sub">Mineiraço · Cobertura de Agências</div>
+    </div>
+  </div>
+  <div id="headerRight"></div>
+</header>
+
+<main>
+
+  <div id="dropzone">
+    <div class="icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#caa12a" stroke-width="1.8">
+        <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/>
+      </svg>
+    </div>
+    <h2>Solte a planilha aqui</h2>
+    <p>Arraste o arquivo .xlsx de Trade Marketing ou clique para selecionar. O painel é montado automaticamente a partir das abas de cada estado.</p>
+    <button class="btn dark" type="button" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">Selecionar arquivo .xlsx</button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+    <div class="hint">Os dados ficam só no seu navegador — nada é enviado a um servidor.</div>
+  </div>
+
+  <div id="appView">
+    <div class="tabs" id="tabs"></div>
+    <div id="content"></div>
+  </div>
+
+  <footer class="note">Painel gerado automaticamente a partir das tabelas de cobertura de cada aba de estado.</footer>
+</main>
+
+<script>
+const DAY_ORDER = ['SEG','TER','QUA','QUI','SEX','SAB','DOM'];
+const PALETTE = ['#caa12a','#c2693c','#7a9a52','#4c81a0','#8a6bb0','#e0b32b','#a85b51','#4f8b82'];
+
+// Cor estável e ÚNICA por rede: calculada uma vez para todo o arquivo, na ordem
+// de quantas lojas cada rede tem (as maiores redes recebem as cores "base" da
+// marca; redes além da paleta base recebem tons gerados por rotação de matiz,
+// com saturação/luminosidade no mesmo registro da paleta, evitando repetição).
+let CHAIN_COLOR_MAP = {};
+function buildChainColorMap(){
+  const freq = {};
+  allRows().forEach(r=>{ freq[r.chain] = (freq[r.chain]||0) + 1; });
+  const sorted = Object.keys(freq).sort((a,b)=>freq[b]-freq[a]);
+  CHAIN_COLOR_MAP = {};
+  sorted.forEach((chain,i)=>{
+    if(i < PALETTE.length) CHAIN_COLOR_MAP[chain] = PALETTE[i];
+    else {
+      const hue = Math.round((137.508 * (i - PALETTE.length + 1)) % 360); // ângulo dourado: máxima distância de matiz
+      CHAIN_COLOR_MAP[chain] = `hsl(${hue} 46% 45%)`;
+    }
+  });
+}
+
+function chainColor(name){
+  return CHAIN_COLOR_MAP[name] || '#9c8a6f';
+}
+
+// words that show up as literal header text and must never be treated as a store/agency value
+const HEADER_WORDS = ['AGÊNCIA','AGENCIA','LOJAS','LOJA','DIAS DA SEMANA','QUANT. VISITAS','OBSERVAÇÕES','OBSERVACOES'];
+
+let STATE = {};
+
+// Dados pré-carregados nesta cópia do painel (gerados a partir de um envio
+// específico da planilha). Se presente, o painel abre já com tudo visível,
+// sem precisar de upload. Quem receber este arquivo ainda pode trocar por
+// uma versão mais atual a qualquer momento pelo botão "Carregar nova versão".
+const EMBEDDED_STATE = {"Rio Grande do Sul": {"rows": [{"agency": "HOVAN", "store": "ASUN 01 QUINTÃO", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 03 CAVALHADA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 05 IMBÉ", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "HOVAN", "store": "ASUN 07 CACHOEIRINHA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "HOVAN", "store": "ASUN 09 CIDREIRA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "HOVAN", "store": "ASUN 11 CAPÃO DA CANOA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "HOVAN", "store": "ASUN 13 ESTÂNCIA VELHA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "HOVAN", "store": "ASUN 14 - OSÓRIO", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUI", "SEX"]}, {"agency": "HOVAN", "store": "ASUN 15 CANOAS CAIRU - FÁTIMA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 16 MARILUZ", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "HOVAN", "store": "ASUN 25 TORRES", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "HOVAN", "store": "ASUN 26 MONTENEGRO", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 27 NOIVA DO MAR", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 29 JUCA - HÍPICA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 30 XANGRI-LÁ", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "HOVAN", "store": "ASUN 31 PINHAL CENTRO", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "HOVAN", "store": "ASUN 32 MAGISTÉRIO", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 33 TRAMANDAÍ", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "HOVAN", "store": "ASUN 34 GRAVATAÍ CENTRO", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "HOVAN", "store": "ASUN 35 POA PONTAL", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 41 AZENHA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "HOVAN", "store": "ASUN 43 SANTANA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 45 REPÚBLICA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 47 GUAÍBA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "HOVAN", "store": "ASUN 48 DOIS IRMÃOS", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 50 CANOAS IGARA", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "HOVAN", "store": "ASUN 51 PLÍNIO", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "HOVAN", "store": "ASUN 53 CACHOEIRINHA CENTRO 2", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "HOVAN", "store": "ASUN 54 CONCEIÇÃO", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 55 CANOAS NITERÓI", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 56 CANOAS FLORIANÓPOLIS", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 57 CACH. RITTER", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN 58 ELDORADO", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "ASUN XANGRI-LÁ NOVO", "chain": "ASUN", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR ALBION", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR CANOAS", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR CAXIAS DO SUL", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR CRISTAL", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR GRAVATAÍ", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR GRAMADO", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR NOVO HAMBURGO", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR PELOTAS", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR PPA", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR SANTA MARIA", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR SANTA MARIA F. FERRARI", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "CARREFOUR VIAMÃO", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "LEVE MAIS 10 - PARQUE DOS MAIAS", "chain": "LEVE MAIS", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "LEVE MAIS 12 - RESTINGA", "chain": "LEVE MAIS", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "HOVAN", "store": "LEVE MAIS 18 - PINHAL", "chain": "LEVE MAIS", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "LEVE MAIS 202 SANTA MARIA", "chain": "LEVE MAIS", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "HOVAN", "store": "LEVE MAIS 203 GRAVATAÍ", "chain": "LEVE MAIS", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "HOVAN", "store": "LEVE MAIS 44 - NOVA T.", "chain": "LEVE MAIS", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL PORTO ALEGRE", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL SÃO LEOPOLDO", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL TRAMANDAI", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL TAQUARA", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL CACHOEIRINHA", "chain": "SUPER RISSUL", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL GRAVATAÍ", "chain": "SUPER RISSUL", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL PAROBÉ", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL NOVO HAMBURGO", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL PORTO ALEGRE", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL SAPUCAIA DO SUL", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL CAMPO BOM", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL SÃO FRANCISCO DE PAULA", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL NOVO HAMBURGO", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL CANELA", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL SAPIRANGA", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL PORTÃO", "chain": "SUPER RISSUL", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL IVOTI", "chain": "SUPER RISSUL", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL VIAMÃO", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL NOVO HAMBURGO", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL TRÊS COROAS", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL IGREJINHA", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL SAPUCAIA DO SUL", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL SAPUCAIA DO SUL", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL GRAVATAÍ", "chain": "SUPER RISSUL", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL SÃO LEOPOLDO", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL GRAVATAÍ", "chain": "SUPER RISSUL", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL CAMPO BOM", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL ESTANCIA VELHA", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL GRAMADO", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL SAPIRANGA", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL NOVO HAMBURGO", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "SUPER RISSUL CANOAS", "chain": "SUPER RISSUL", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "MACROMIX ESTEIO", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "MACROMIX NOVO HAMBURGO", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "MACROMIX SAPIRANGA", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "MACROMIX SÃO LEOPOLDO", "chain": "MACROMIX", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "TREVISAN", "store": "MACROMIX SÃO LEOPOLDO", "chain": "MACROMIX", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "TREVISAN", "store": "MACROMIX TORRES", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "MACROMIX XANGRI-LÁ", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "MACROMIX CANOAS", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TREVISAN", "store": "MACROMIX SAPUCAIA DO SUL", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "TREVISAN", "store": "MACROMIX SÃO LEOPOLDO", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "TREVISAN", "store": "MACROMIX TRAMANDAI", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "MACROMIX PORTÃO", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER"]}, {"agency": "TREVISAN", "store": "MACROMIX TAQUARA", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TREVISAN", "store": "MACROMIX CACHOEIRINHA", "chain": "MACROMIX", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}]}, "Santa Catarina": {"rows": [{"agency": "TOP SUL", "store": "ANGELONI 02", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 04", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "ANGELONI 05", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 06", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 07", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 08", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "ANGELONI 10", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "ANGELONI 11", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 12", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "ANGELONI 13", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 14", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 15", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 18", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 19", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 21", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SAB"]}, {"agency": "TOP SUL", "store": "ANGELONI 23", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 28", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "ANGELONI 33", "chain": "ANGELONI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "ANGELONI 34", "chain": "ANGELONI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "ANGELONI 35", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 36", "chain": "ANGELONI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "ANGELONI 38", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 39", "chain": "ANGELONI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEX"]}, {"agency": "TOP SUL", "store": "ANGELONI 40", "chain": "ANGELONI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "ANGELONI 41", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "CARREFOUR", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "CARREFOUR", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "FENNER E CIA DU BOM", "chain": "FENNER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "FENNER E CIA DU BOM", "chain": "FENNER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "FENNER E CIA DU BOM", "chain": "FENNER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOCH 02", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOCH 03", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 04", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["TER", "QUI", "SAB"]}, {"agency": "TOP SUL", "store": "KOCH 05", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 06", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUI", "SAB"]}, {"agency": "TOP SUL", "store": "KOCH 07", "chain": "KOCH", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 08", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 09", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOCH 13", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOCH 14", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["TER", "SEX", "SAB"]}, {"agency": "TOP SUL", "store": "KOCH 16", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 20", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOCH 23", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOCH 31", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 41", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["TER", "QUI", "SAB"]}, {"agency": "TOP SUL", "store": "KOCH 44", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 47", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "KOCH 52", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUI", "SAB"]}, {"agency": "TOP SUL", "store": "KOCH 63", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 75", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 76", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOCH 78", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["TER", "QUI", "SAB"]}, {"agency": "TOP SUL", "store": "KOCH 80", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SAB"]}, {"agency": "TOP SUL", "store": "KOCH 81", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 87", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "TOP SUL", "store": "KOCH 88", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOCH 89", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "KOCH 93", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOCH 95", "chain": "KOCH", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "TOP SUL", "store": "KOCH 102", "chain": "KOCH", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRAO 01", "chain": "KOMPRAO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 10", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 11", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 12", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 15", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 17", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 18", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 21", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 22", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SAB"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 24", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 25", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SAB"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 26", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 27", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 28", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 29", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 30", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 32", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 33", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 34", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 35", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 36", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 37", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 38", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 39", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 40", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 42", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 43", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 45", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 46", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 48", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 49", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 50", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SAB"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 51", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 53", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 54", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 55", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 56", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 57", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 58", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 59", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 60", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 61", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 62", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEX"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 64", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 65", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 66", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 67", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 68", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 69", "chain": "KOMPRÃO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 70", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 71", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 72", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 73", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 74", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 77", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "KOMPRÃO 79", "chain": "KOMPRÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRAO 82", "chain": "KOMPRAO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "TOP SUL", "store": "KOMPRAO 83", "chain": "KOMPRAO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRAO 84", "chain": "KOMPRAO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRAO 85", "chain": "KOMPRAO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRAO 86", "chain": "KOMPRAO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRAO 90", "chain": "KOMPRAO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "KOMPRAO 91", "chain": "KOMPRAO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRAO 92", "chain": "KOMPRAO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEX"]}, {"agency": "TOP SUL", "store": "KOMPRAO 94", "chain": "KOMPRAO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "KOMPRAO 101", "chain": "KOMPRAO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "SUPER A ATAC 301", "chain": "SUPER A ATAC", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "SUPER A ATAC 302", "chain": "SUPER A ATAC", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "TOP SUL", "store": "SUPER A ATAC 303", "chain": "SUPER A ATAC", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "SUPER A ATAC 304", "chain": "SUPER A ATAC", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SAB"]}, {"agency": "TOP SUL", "store": "SUPER A ATAC 305", "chain": "SUPER A ATAC", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "TOP SUL", "store": "SUPER ARCHER 01", "chain": "SUPER ARCHER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "SUPER ARCHER 02", "chain": "SUPER ARCHER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "SUPER ARCHER 03", "chain": "SUPER ARCHER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "SUPER ARCHER 04", "chain": "SUPER ARCHER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "SUPER ARCHER 05", "chain": "SUPER ARCHER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "SUPER ARCHER 06", "chain": "SUPER ARCHER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SAB"]}, {"agency": "TOP SUL", "store": "SUPER ARCHER 07", "chain": "SUPER ARCHER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "SUPER ARCHER 08", "chain": "SUPER ARCHER", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "SUPER DE ANGELINA", "chain": "SUPER DE", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "SUPER DE ANGELINA", "chain": "SUPER DE", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "SUPER DE ANGELINA", "chain": "SUPER DE", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "SUPER DE ANGELINA", "chain": "SUPER DE", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "SUPER MESCHKE 1", "chain": "SUPER MESCHKE", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "SUPER MESCHKE 2", "chain": "SUPER MESCHKE", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "SUPER MESCHKE 3", "chain": "SUPER MESCHKE", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "SUPER MESCHKE 4 ATAC", "chain": "SUPER MESCHKE", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TOP SUL", "store": "MANENTTI 01", "chain": "MANENTTI", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "MANENTTI 02", "chain": "MANENTTI", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "MANENTTI 03", "chain": "MANENTTI", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "MANENTTI 04", "chain": "MANENTTI", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "MANENTTI 05", "chain": "MANENTTI", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "MANENTTI 07", "chain": "MANENTTI", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "MANENTTI 08", "chain": "MANENTTI", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "MANENTTI 09", "chain": "MANENTTI", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["SEX"]}, {"agency": "TOP SUL", "store": "MANENTTI 10", "chain": "MANENTTI", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "MANENTTI 11", "chain": "MANENTTI", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "ALTHOFF 03", "chain": "ALTHOFF", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "ALTHOFF 04", "chain": "ALTHOFF", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "TOP SUL", "store": "ALTHOFF 05", "chain": "ALTHOFF", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "ALTHOFF 06", "chain": "ALTHOFF", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "ALTHOFF 07", "chain": "ALTHOFF", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "TOP SUL", "store": "ALTHOFF 15", "chain": "ALTHOFF", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "ALTHOFF 16", "chain": "ALTHOFF", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["TER"]}, {"agency": "TOP SUL", "store": "ALTHOFF 17", "chain": "ALTHOFF", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "ALTHOFF 19", "chain": "ALTHOFF", "visitsWeek": 1.0, "visitsMonth": 2.0, "days": ["QUI"]}, {"agency": "TOP SUL", "store": "ALTHOFF 20", "chain": "ALTHOFF", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "PERSORE", "store": "Imperatriz 03 - Estreito", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "PERSORE", "store": "Imperatriz 07- Kobrasol", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "PERSORE", "store": "Imperatriz 08- Gama Deça", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "PERSORE", "store": "Imperatriz 14- Coqueiros", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "PERSORE", "store": "Imperatris 18- Beira Mar", "chain": "IMPERATRIS", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "PERSORE", "store": "Imperatriz 22- Corrego Grande", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "PERSORE", "store": "Imperatriz 23- Floripa Shopping", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "PERSORE", "store": "Imperatriz 27 - Trindade", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "PERSORE", "store": "Imperatriz 31- Saco dos Limões", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "PERSORE", "store": "Imperatriz 36- Campinas", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "PERSORE", "store": "Imperatriz 37- Joinville", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "PERSORE", "store": "Imperatriz 42- Lagoa", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "PERSORE", "store": "Imperatriz 01- Santo Amaro", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "PERSORE", "store": "Imperatriz 02- Ponte Imarui", "chain": "IMPERATRIZ", "visitsWeek": 0.0, "visitsMonth": 0.0, "days": []}, {"agency": "PERSORE", "store": "Imperatriz 11- Canasvieiras", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "PERSORE", "store": "Imperatriz 16- Jurere", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "PERSORE", "store": "Imperatriz 17 - Mauro Ramos", "chain": "IMPERATRIZ", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "PERSORE", "store": "Imperatriz 30- Aeroporto", "chain": "IMPERATRIZ", "visitsWeek": 0.0, "visitsMonth": 0.0, "days": []}, {"agency": "PERSORE", "store": "Celeiro", "chain": "CELEIRO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Celeiro Nereu Ramos", "chain": "CELEIRO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Celeiro General Osório", "chain": "CELEIRO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Celeiro Martinho Lutero", "chain": "CELEIRO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Celeiro Rui Barbosa", "chain": "CELEIRO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Celeiro Rua Para", "chain": "CELEIRO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Brasão Fernando Machado", "chain": "BRASÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Brasão Jardim América", "chain": "BRASÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Brasão Xaxim-Centro", "chain": "BRASÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Brasão Rio de Janeiro", "chain": "BRASÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Brasão Centro", "chain": "BRASÃO", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Kross Atacadista- Chapecó", "chain": "KROSS", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Kross Atacadista - Xaxim", "chain": "KROSS", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "PERSORE", "store": "Magia Canasvieiras", "chain": "MAGIA", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}]}, "São Paulo": {"rows": [{"agency": "ANGELA & JÔ", "store": "COOP. STO.ANDRÉ (QUEIROS)", "chain": "COOP.", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. STO.ANDRÉ (INDUSTRIAL)", "chain": "COOP.", "visitsWeek": 4.0, "visitsMonth": 16.0, "days": ["SEG", "TER", "QUI", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. STO.ANDRÉ (PQ.DAS NAÇÕES)", "chain": "COOP.", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "ANGELA & JÔ", "store": "COOP. STO.ANDRÉ (PERIMETRAL)", "chain": "COOP.", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. STO.ANDRÉ (CAPUAVA)", "chain": "COOP.", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. STO.ANDRÉ (V.LUZITA)", "chain": "COOP.", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. STO.ANDRÉ (CARIJÓS)", "chain": "COOP.", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "ANGELA & JÔ", "store": "COOP. STO.ANDRÉ (P. BARRETO)", "chain": "COOP.", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "ANGELA & JÔ", "store": "COOP. S.B.C (NABUCO)", "chain": "COOP.", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. MAUÁ (ITAPARK)", "chain": "COOP.", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "ANGELA & JÔ", "store": "COOP. S.B.C (RUDGE RAMOS)", "chain": "COOP.", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. S.B.C (CAFÉ FILHO)", "chain": "COOP.", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "ANGELA & JÔ", "store": "COOP. S.B.C (VIANAS)", "chain": "COOP.", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "ANGELA & JÔ", "store": "COOP. SÃO CAETANO DO SUL", "chain": "COOP.", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. DIADEMA CENTRO", "chain": "COOP.", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. MAUÁ", "chain": "COOP.", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. RIBEIRÃO PIRES", "chain": "COOP.", "visitsWeek": 4.0, "visitsMonth": 16.0, "days": ["SEG", "TER", "QUA", "SEX"]}, {"agency": "ANGELA & JÔ", "store": "COOP. RIBEIRÃO PIRES CENTRO", "chain": "COOP.", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "ANGELA & JÔ", "store": "COOP. D.PEDRO", "chain": "COOP.", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "ANGELA & JÔ", "store": "COOP. STO.ANDRÉ (JARDIM MILENA)", "chain": "COOP.", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "ANGELA & JÔ", "store": "COOP GENERAL", "chain": "COOP", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "ANGELA & JÔ", "store": "COOP. UTINGA", "chain": "COOP.", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "ANGELA & JÔ", "store": "COOP. PIRELLI", "chain": "COOP.", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "ANGELA & JÔ", "store": "CCP. D. PEDRO 2", "chain": "CCP. D. PEDRO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "ANGELA & JÔ", "store": "CPP EMPÓRIO", "chain": "CPP", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - PRAIA GRANDE / CARREFOUR_4855 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - ALPHAVILE / CARREFOUR_3530 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - ANALIA FRANCO / CARREFOUR_1465 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - ARICANDUVA / CARREFOUR_1155 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - BROOKLIN / CARREFOUR_4421 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - BUTANTA / CARREFOUR_1325 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - CAMPINAS / CARREFOUR_2062 / CAMPINAS", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - DEMARCHI / CARREFOUR_4227 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - DOM PEDRO / CARREFOUR_1058 / CAMPINAS", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - ESPLANADA / CARREFOUR_3220 / SOROCABA", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - GIOVANNI GRONCHI / CARREFOUR_1546 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - IMIGRANTES / CARREFOUR_1228 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - INTERLAGOS 1 / CARREFOUR_2526 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - INTERLAGOS 2 / CARREFOUR_1163 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - JUNDIAI - JDI / CARREFOUR_139 / JUNDIAI", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - MACEDO BGU / CARREFOUR_3980 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - MARGINAL - SJP / CARREFOUR_136 / SJRP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - OSASCO / CARREFOUR_1430 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - PAMPLONA / CARREFOUR_2020 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - PARQUE DAS NACOES / CARREFOUR_3352 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - PESSEGO / CARREFOUR_1589 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - PINHEIROS / CARREFOUR_1031 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - PIRACICABA / CARREFOUR_1643 / PIRACICABA", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - PRAIA MAR SHOPPING / CARREFOUR_3948 / SANTOS", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - RAPOSO / CARREFOUR_1120 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - REBOUCAS / CARREFOUR_2038 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SANTO ANDRE / CARREFOUR_3930 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SANTOS / CARREFOUR_201 / SANTOS", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SAO BERNARDO / CARREFOUR_1422 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SAO BERNARDO CENTRO / CARREFOUR_1880 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SAO CAETANO / CARREFOUR_1333 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SAO PAULO / CARREFOUR_1104 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SAO VICENTE / CARREFOUR_1201 / SAO VICENTE", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SERIMBURA / CARREFOUR_129 / SJC", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SHOPPING - CSS / CARREFOUR_5 / SJRP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SHOPPING - RPS / CARREFOUR_1171 / RIBEIRAO PRETO", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - SOROCABA NORTE / CARREFOUR_1252 / SOROCABA", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["QUA", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - TABOAO / CARREFOUR_4277 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - TABOAO DA SERRA / CARREFOUR_3301 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - TAMBORE / CARREFOUR_1260 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - TAUBATE / CARREFOUR_420 / TAUBATE", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - VIA NORTE / CARREFOUR_3514 / RIBEIRAO PRETO", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - VILA HUMAITA / CARREFOUR_1244 / SP", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - VILA RIO GRU / CARREFOUR_1457 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR - JARDIM LONDRINA / CARREFOUR_4278 / SP", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR BAIRRO - CARREFOUR_1902 / CAMPINAS", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "SUPERTRADE", "store": "CARREFOUR BAIRRO - MORUMBI", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["SEG"]}, {"agency": "XP", "store": "CARREFOUR - CAMBUCI", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUA"]}, {"agency": "XP", "store": "CARREFOUR - GUARUJA", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "XP", "store": "CARREFOUR - PRESIDENTE PRUDENTE - SHOPPING", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "XP", "store": "CARREFOUR - SAO PAULO - AV REBOUCAS", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "XP", "store": "CARREFOUR - SAO PAULO - HIPER BIG WASHINGTON LUIS", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "XP", "store": "CARREFOUR - PAMPLONA  SHOPPING", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "XP", "store": "CARREFOUR-BAIRRO INDAIATUBA", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "XP", "store": "CARREFOUR- BAIRRO VINHEDO", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "XP", "store": "CARREFOUR- BAIRRO TAUBATE 2", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "XP", "store": "CARREFOUR- BAIRRO ITU", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "XP", "store": "CARREFOUR- BAIRRO CACAPAVA", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "XP", "store": "CARREFOUR- BAIRRO SALTO", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "XP", "store": "CARREFOUR- BAIRRO RIBEIRAO PRETO", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "XP", "store": "CARREFOUR-GIMENES SAO CARLOS", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "XP", "store": "CARREFOUR-GIMENES VILA  COSTA", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "XP", "store": "CARREFOUR-CAMPINAS IGUATEMI", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "XP", "store": "CARREFOUR-BARUERI TAMBORE", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "XP", "store": "AYUMI - EST DA COLONIA, 95 - SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - R BENEDITO JANDIRO SOARES, 50 EMBU-GUACU - SP", "chain": "AYUMI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - AV SADAMU INOUE, 6651 SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - AV DAS PALMEIRAS, 76, SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - R JORGE AMADO, 28 ITAPECERICA DA - SP", "chain": "AYUMI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - AV CANDIDO JOSE XAVIER, 178 SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - AV SANTA CATARINA, 2639 SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - AV PAULO GUILGUER REIMBERG, 3623 SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - EST DA BARONESA, 2266 SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - AV MARIA COELHO AGUIAR, 408 SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - AV JOSE ESTIMA FILHO, 601SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - AV YERVANT KISSAJIKIAN, 1626 SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - AV ANGELO CRISTIANINI, 1800 CID JULIA SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["TER", "QUI"]}, {"agency": "XP", "store": "AYUMI - AV GUARAPIRANGA, 5282 SAO PAULO - SP", "chain": "AYUMI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["TER", "QUI"]}, {"agency": "TATIANE", "store": "CARREFOUR - CASA VERDE", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": []}, {"agency": "TATIANE", "store": "CARREFOUR - SAO PAULO - TIETE", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": []}, {"agency": "TATIANE", "store": "CARREFOUR- LIMAO", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": []}, {"agency": "TATIANE", "store": "CARREFOUR- BAIRRO MORUMBI", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": []}]}, "Paraná": {"rows": [{"agency": "FK", "store": "Muffato alto da XV", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "FK", "store": "Muffato comendador Araújo", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "FK", "store": "Muffato jardim das américas", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Muffato Hauer", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Muffato Juveve", "chain": "MUFFATO", "visitsWeek": 3.0, "visitsMonth": 12.0, "days": ["SEG", "QUA", "SEX"]}, {"agency": "FK", "store": "Muffato Santa Felicidade", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "FK", "store": "Muffato São josé dos Pinhais", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Muffato Portão", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Muffato Tarumã", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Muffato Bigorrilho", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "SEX"]}, {"agency": "FK", "store": "Muffato Uvaranas", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Muffato Gourmet", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Muffato Olarias", "chain": "MUFFATO", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Super vitor", "chain": "SUPER VITOR", "visitsWeek": 0.0, "visitsMonth": 0.0, "days": []}, {"agency": "FK", "store": "Jacomar Afonso Pena", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Colonia S.J.P", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Costeira", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Guatupê", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Joaquim Nabuco", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar São Marcos - Artex", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Boqueirão Matriz", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Maestro", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Uberaba - Torres", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Br 277", "chain": "JACOMAR BR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Sitio Cercado", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Xaxim", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Campo Santana", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Novo mundo (PEDRO GUSSO)", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar piraquara", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Juri danilenko", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Weissopolis Pinhais", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Eucalipto", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Parque verde", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Jacomar Novo Ganchinho", "chain": "JACOMAR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Adega Brasil", "chain": "ADEGA", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Angeloni loja 20 Agua verde", "chain": "ANGELONI LOJA", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Angeloni loja 37 Champagnat", "chain": "ANGELONI LOJA", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Angeloni loja 24 Bigorrilho (Batel)", "chain": "ANGELONI LOJA", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Angeloni 29 Sjp", "chain": "ANGELONI", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": ["SEG", "QUI"]}, {"agency": "FK", "store": "Angeloni Maringa", "chain": "ANGELONI", "visitsWeek": 0.0, "visitsMonth": 0.0, "days": []}, {"agency": "FK", "store": "Angeloni 27 Londrina", "chain": "ANGELONI", "visitsWeek": 0.0, "visitsMonth": 0.0, "days": []}, {"agency": "FK", "store": "Carrefour Pinhais", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "FK", "store": "Carrefour Parolin", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "FK", "store": "Carrefour Portão", "chain": "CARREFOUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "FK", "store": "Carreofur - 5837 Cabral", "chain": "CARREOFUR", "visitsWeek": 1.0, "visitsMonth": 4.0, "days": ["QUI"]}, {"agency": "FK", "store": "Carrefour  Londrina", "chain": "CARREFOUR", "visitsWeek": 0.0, "visitsMonth": 0.0, "days": []}]}, "Minas Gerais": {"rows": [{"agency": "OPUSTRADE", "store": "Carrefour BH Norte", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "OPUSTRADE", "store": "Carrefour Contagem", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "OPUSTRADE", "store": "Carrefour Betim", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "OPUSTRADE", "store": "Carrefour Uberlândia", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "OPUSTRADE", "store": "Carrefour Uberaba", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "OPUSTRADE", "store": "Carrefour BH Pampulha", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}]}, "Rio de Janeiro": {"rows": [{"agency": "OPUSTRADE", "store": "Carrefour Barra", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "OPUSTRADE", "store": "Carrefour Campo Grande", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "OPUSTRADE", "store": "Carrefour Sulacap", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "OPUSTRADE", "store": "Carrefour Norte Shopping", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "OPUSTRADE", "store": "Carrefour Duque de Caxias", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}, {"agency": "OPUSTRADE", "store": "Carrefour Duque de Caxias Brigadeiro", "chain": "CARREFOUR", "visitsWeek": 2.0, "visitsMonth": 8.0, "days": []}]}};
+const EMBEDDED_AT = "30/06/2026";
+
+const dropzone = document.getElementById('dropzone');
+
+// Accordion exclusivo: dentro de um mesmo grupo (.accordion), abrir um item
+// fecha automaticamente os outros que estavam abertos. O evento "toggle" não
+// borbulha, então o listener precisa ser registrado na fase de captura.
+document.addEventListener('toggle', (e)=>{
+  const d = e.target;
+  if(!d || d.tagName !== 'DETAILS' || !d.open) return;
+  const group = d.closest('.accordion');
+  if(!group) return;
+  group.querySelectorAll('details').forEach(other=>{ if(other !== d) other.open = false; });
+}, true);
+const fileInput = document.getElementById('fileInput');
+
+['dragenter','dragover'].forEach(ev=>dropzone.addEventListener(ev, e=>{e.preventDefault(); dropzone.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>dropzone.addEventListener(ev, e=>{e.preventDefault(); dropzone.classList.remove('drag');}));
+dropzone.addEventListener('drop', e=>{ const f = e.dataTransfer.files[0]; if(f) handleFile(f); });
+dropzone.addEventListener('click', ()=>fileInput.click());
+fileInput.addEventListener('change', e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+// Abre o painel direto com os dados embutidos, se houver.
+(function bootWithEmbeddedData(){
+  if(!EMBEDDED_STATE) return;
+  STATE = EMBEDDED_STATE;
+  buildChainColorMap();
+  document.getElementById('dropzone').style.display = 'none';
+  document.getElementById('appView').style.display = 'block';
+  document.getElementById('headerRight').innerHTML = `
+    <div style="display:flex; gap:10px; align-items:center;">
+      <div class="file-pill"><span class="dot"></span>Dados de ${EMBEDDED_AT}</div>
+      <button class="btn" onclick="resetApp()">Carregar nova versão</button>
+    </div>`;
+  renderTabs();
+})();
+
+function handleFile(file){
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    const data = new Uint8Array(e.target.result);
+    const wb = XLSX.read(data, {type:'array'});
+    parseWorkbook(wb);
+    buildChainColorMap();
+    document.getElementById('headerRight').innerHTML = `
+      <div style="display:flex; gap:10px; align-items:center;">
+        <div class="file-pill"><span class="dot"></span>${file.name}</div>
+        <button class="btn" onclick="resetApp()">Trocar arquivo</button>
+      </div>`;
+    document.getElementById('dropzone').style.display = 'none';
+    document.getElementById('appView').style.display = 'block';
+    renderTabs();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function resetApp(){
+  STATE = {};
+  document.getElementById('dropzone').style.display = 'block';
+  document.getElementById('appView').style.display = 'none';
+  document.getElementById('headerRight').innerHTML = '';
+  fileInput.value = '';
+}
+
+function isHeaderish(text){
+  if(text == null) return true;
+  const up = text.toString().trim().toUpperCase();
+  if(!up) return true;
+  return HEADER_WORDS.some(w => up === w || up.startsWith(w));
+}
+
+// Palavras que sozinhas não identificam uma rede (ambíguas: "SUPER X", "REDE Y"...).
+// Quando a primeira palavra do nome da loja é uma dessas, juntamos com a palavra
+// seguinte para formar o nome real da rede (ex.: "SUPER RISSUL", não só "SUPER").
+const GENERIC_CHAIN_PREFIXES = ['SUPER','SUPERMERCADO','SUPERMERCADOS','REDE','LOJAS','LOJA',
+  'ATACADO','ATACADÃO','ATACAREJO','MERCADO','MERCADINHO','EMPÓRIO','GRUPO','COMERCIAL'];
+
+function detectChain(storeName){
+  if(!storeName) return 'OUTROS';
+  // corta no primeiro traço (" - " ou "-"): muitos nomes de loja são
+  // "REDE - BAIRRO / CÓDIGO_INTERNO / CIDADE", e o código interno costuma ter
+  // números que, sem este corte, fariam o detector confundir cada endereço
+  // com uma rede diferente (ex.: "CARREFOUR_4855" virando parte do nome da rede).
+  const dashCut = storeName.trim().split(/\s*[-–]\s*/)[0].trim();
+  const base = dashCut || storeName.trim();
+
+  const tokens = base.split(/\s+/);
+  let cut = -1;
+  for(let i=0;i<tokens.length;i++){ if(/\d/.test(tokens[i])){ cut = i; break; } }
+  let chainTokens;
+  if(cut === 0) chainTokens = [tokens[0]];
+  else if(cut > 0) chainTokens = tokens.slice(0, cut);
+  else chainTokens = tokens.length ? [tokens[0]] : ['Outros'];
+
+  // expande nomes genéricos ("SUPER", "REDE"...) com a próxima palavra disponível
+  if(chainTokens.length === 1 && GENERIC_CHAIN_PREFIXES.includes(chainTokens[0].toUpperCase())){
+    const nextIdx = chainTokens.length; // = 1, índice da próxima palavra em tokens
+    if(tokens[nextIdx] && !/\d/.test(tokens[nextIdx])){
+      chainTokens = [chainTokens[0], tokens[nextIdx]];
+    }
+  }
+  const name = chainTokens.join(' ').replace(/[-–]$/,'').trim() || 'Outros';
+  // maiúsculas para evitar "Carrefour" e "CARREFOUR" virarem redes diferentes
+  return name.toUpperCase();
+}
+
+function parseDays(str){
+  if(!str) return [];
+  const found = [];
+  const up = str.toUpperCase();
+  DAY_ORDER.forEach(d=>{ if(up.includes(d)) found.push(d); });
+  return found;
+}
+
+// Finds every occurrence of an "AGÊNCIA / LOJAS" header row in a sheet (a sheet can repeat
+// this table once per agency block), then reads each block's rows using ITS OWN column
+// mapping until the next header (or end of sheet).
+function parseWorkbook(wb){
+  STATE = {};
+  wb.SheetNames.forEach(sheetName=>{
+    const ws = wb.Sheets[sheetName];
+    const aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
+
+    const headers = []; // {row, agI, loI, vsI, vmI, ddI}
+    for(let r=0;r<aoa.length;r++){
+      const row = aoa[r];
+      if(!row) continue;
+      let agI=-1, loI=-1, vsI=-1, vmI=-1, ddI=-1;
+      row.forEach((cell,ci)=>{
+        if(typeof cell !== 'string') return;
+        const c = cell.trim().toUpperCase();
+        if(c === 'AGÊNCIA' || c === 'AGENCIA') agI = ci;
+        else if(c === 'LOJAS' || c === 'LOJA') loI = ci;
+        else if(c.includes('VISITAS POR LOJA') && c.includes('SEMANAL')) vsI = ci;
+        else if(c.includes('VISITAS POR LOJA') && (c.includes('MÊS')||c.includes('MES'))) vmI = ci;
+        else if(c.includes('DIAS DA SEMANA')) ddI = ci;
+      });
+      if(agI>-1 && loI>-1) headers.push({row:r, agI, loI, vsI, vmI, ddI});
+    }
+    if(!headers.length) return;
+
+    const rows = [];
+    headers.forEach((h, hi)=>{
+      const endRow = hi+1 < headers.length ? headers[hi+1].row : aoa.length;
+      for(let r=h.row+1; r<endRow; r++){
+        const row = aoa[r];
+        if(!row) continue;
+        const agencyRaw = row[h.agI];
+        const storeRaw = row[h.loI];
+        if(storeRaw == null || storeRaw.toString().trim() === '') continue;
+        if(isHeaderish(storeRaw)) continue;
+        const store = storeRaw.toString().trim();
+        const agency = (agencyRaw==null || agencyRaw.toString().trim()==='') ? '—' : agencyRaw.toString().trim();
+        const visitsWeek = h.vsI>-1 ? Number(row[h.vsI])||0 : 0;
+        const visitsMonth = h.vmI>-1 ? Number(row[h.vmI])||0 : 0;
+        const daysRaw = h.ddI>-1 ? row[h.ddI] : null;
+        rows.push({
+          agency, store, chain: detectChain(store),
+          visitsWeek, visitsMonth: visitsMonth || visitsWeek*4,
+          days: parseDays(daysRaw ? daysRaw.toString() : '')
+        });
+      }
+    });
+
+    // fill forward the last known agency name for rows where it was blank (merged cells)
+    let lastAgency = null;
+    rows.forEach(r=>{
+      if(r.agency === '—' && lastAgency) r.agency = lastAgency;
+      else if(r.agency !== '—') lastAgency = r.agency;
+    });
+
+    if(rows.length) STATE[sheetName] = { rows };
+  });
+}
+
+function allRows(){
+  return Object.entries(STATE).flatMap(([state, d]) => d.rows.map(r => ({...r, state})));
+}
+
+function renderTabs(){
+  const tabsEl = document.getElementById('tabs');
+  const names = Object.keys(STATE);
+  const overviewTab = `<div class="tab active" data-state="__OVERVIEW__">🗺️ Mapa da Rede</div>`;
+  const stateTabs = names.map(n=>{
+    const count = STATE[n].rows.length;
+    return `<div class="tab" data-state="${n}">${n}<span class="n">${count}</span></div>`;
+  }).join('');
+  tabsEl.innerHTML = overviewTab + stateTabs;
+  tabsEl.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      tabsEl.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      if(t.dataset.state === '__OVERVIEW__') renderOverview();
+      else renderState(t.dataset.state);
+    });
+  });
+  if(names.length) renderOverview();
+  else document.getElementById('content').innerHTML = `<p style="color:var(--ink-dim);padding:40px 0;">Nenhuma tabela de cobertura foi encontrada nas abas desta planilha.</p>`;
+}
+
+function goToState(stateName){
+  document.querySelectorAll('#tabs .tab').forEach(x=>{
+    x.classList.toggle('active', x.dataset.state === stateName);
+  });
+  renderState(stateName);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// "Mapa da Rede": visão consolidada de todos os pontos de operação no Brasil,
+// organizada por estado / agência / rede — não é um mapa geográfico literal
+// (a planilha não traz coordenadas), mas dá o panorama completo da cobertura.
+function renderOverview(){
+  const rows = allRows();
+  const states = Object.keys(STATE);
+  const totalLojas = rows.length;
+  const totalVisitas = rows.reduce((s,r)=>s+(r.visitsMonth||0),0);
+  const totalAgencias = new Set(rows.map(r=>r.state+'|'+r.agency)).size;
+  const totalRedes = new Set(rows.map(r=>r.chain)).size;
+
+  const byState = states.map(s=>{
+    const rs = STATE[s].rows;
+    const visitas = rs.reduce((a,r)=>a+(r.visitsMonth||0),0);
+    const ags = new Set(rs.map(r=>r.agency));
+    const redes = new Set(rs.map(r=>r.chain));
+    const topRede = Object.entries(rs.reduce((acc,r)=>{acc[r.chain]=(acc[r.chain]||0)+1; return acc;},{}))
+      .sort((a,b)=>b[1]-a[1])[0];
+    return {state:s, lojas:rs.length, visitas, agencias:ags.size, redes:redes.size, topRede: topRede?topRede[0]:'—'};
+  }).sort((a,b)=>b.lojas-a.lojas);
+  const maxLojas = Math.max(1, ...byState.map(s=>s.lojas));
+
+  const byRedeNacional = {};
+  rows.forEach(r=>{ byRedeNacional[r.chain] = (byRedeNacional[r.chain]||0)+1; });
+  const topRedesNacional = Object.entries(byRedeNacional).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const maxRedeNacional = topRedesNacional.length ? topRedesNacional[0][1] : 1;
+
+  const html = `
+    <div class="info-note">
+      <span>🗺️</span>
+      <span>Panorama de todos os pontos de operação cadastrados na planilha: <b>${states.length}</b> estado${states.length!==1?'s':''}, <b>${totalAgencias}</b> agências de promotoria e <b>${totalLojas}</b> lojas atendidas. Clique em um estado para ver o detalhe.</span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi" style="--accent:var(--gold-deep)">
+        <div class="label">Lojas na rede (Brasil)</div>
+        <div class="value">${totalLojas}</div>
+        <div class="foot">distribuídas em ${states.length} estado${states.length!==1?'s':''}</div>
+      </div>
+      <div class="kpi" style="--accent:var(--terra)">
+        <div class="label">Visitas / mês (Brasil)</div>
+        <div class="value">${totalVisitas.toLocaleString('pt-BR')}</div>
+        <div class="foot">soma de todos os estados</div>
+      </div>
+      <div class="kpi" style="--accent:var(--green)">
+        <div class="label">Agências de promotoria</div>
+        <div class="value">${totalAgencias}</div>
+        <div class="foot">operando a cobertura em campo</div>
+      </div>
+      <div class="kpi" style="--accent:var(--blue)">
+        <div class="label">Redes / bandeiras</div>
+        <div class="value">${totalRedes}</div>
+        <div class="foot">atendidas em todo o território</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <h3>Cobertura por estado <span class="tag">CLIQUE PARA ABRIR</span></h3>
+      <div class="state-grid">
+        ${byState.map((s,i)=>`
+          <div class="state-card" data-state="${s.state}" style="--bar:${(s.lojas/maxLojas*100).toFixed(0)}%; --c:${PALETTE[i%PALETTE.length]}">
+            <div class="sc-top">
+              <span class="sc-name">${s.state}</span>
+              <span class="sc-lojas">${s.lojas}<small> lojas</small></span>
+            </div>
+            <div class="sc-bar-track"><div class="sc-bar-fill"></div></div>
+            <div class="sc-meta">
+              <span>${s.agencias} agência${s.agencias!==1?'s':''}</span>
+              <span>${s.redes} rede${s.redes!==1?'s':''}</span>
+              <span>${s.visitas.toLocaleString('pt-BR')} visitas/mês</span>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <h3>Mapa de calor — concentração de lojas <span class="tag">ESTADO × REDE</span></h3>
+      <p class="rhythm-explain">Quanto mais escura a célula, maior a quantidade de lojas daquela rede atendidas no estado. Mostra de relance onde a operação está mais concentrada.</p>
+      ${heatmapHTML(byState.map(s=>s.state), rows)}
+    </div>
+
+    <div class="panel">
+      <h3>Maiores redes atendidas no país <span class="tag">Nº DE LOJAS</span></h3>
+      ${topRedesNacional.map(([name,val])=>{ const c = chainColor(name); return `
+        <div class="bar-row">
+          <div class="name" title="${name}">${name}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(val/maxRedeNacional*100).toFixed(1)}%; background:linear-gradient(90deg, ${c}99, ${c})"></div></div>
+          <div class="bar-val">${val}</div>
+        </div>`;}).join('')}
+    </div>
+  `;
+  document.getElementById('content').innerHTML = html;
+  document.querySelectorAll('.state-card').forEach(card=>{
+    card.addEventListener('click', ()=>goToState(card.dataset.state));
+  });
+}
+
+let currentRows = [];
+let tableState = {query:'', agency:'ALL', page:0, pageSize:12};
+let roteiroDay = 'SEG';
+
+// Agrupa uma lista de lojas por agência e monta um accordion nativo (<details>),
+// evitando despejar dezenas de chips soltos na tela de uma vez.
+function agencyAccordionHTML(rows){
+  const groups = {};
+  rows.forEach(r=>{ (groups[r.agency] = groups[r.agency]||[]).push(r); });
+  const entries = Object.entries(groups).sort((a,b)=>b[1].length-a[1].length);
+  return `<div class="accordion">
+    ${entries.map(([agency, list], i)=>`
+      <details class="acc-item" ${i===0 ? 'open' : ''}>
+        <summary><span>${agency}</span><span class="acc-count">${list.length} loja${list.length!==1?'s':''}</span></summary>
+        <div class="acc-body">
+          ${list.map(r=>`<span class="mini-chip">${r.store}</span>`).join('')}
+        </div>
+      </details>`).join('')}
+  </div>`;
+}
+
+// "Mapa de calor": matriz Estado × Rede com a quantidade de lojas em cada
+// cruzamento; a intensidade da cor (tonalidade do dourado da marca) cresce
+// proporcionalmente ao número de lojas, dando uma leitura visual rápida de
+// onde a operação está mais concentrada.
+function heatmapHTML(states, rows){
+  const chainTotals = {};
+  rows.forEach(r=>{ chainTotals[r.chain] = (chainTotals[r.chain]||0)+1; });
+  const topChains = Object.entries(chainTotals).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
+
+  const matrix = {};
+  states.forEach(s=>{ matrix[s] = {}; topChains.forEach(c=>{ matrix[s][c] = 0; }); });
+  rows.forEach(r=>{ if(topChains.includes(r.chain) && matrix[r.state]) matrix[r.state][r.chain]++; });
+
+  let maxVal = 1;
+  states.forEach(s=>topChains.forEach(c=>{ maxVal = Math.max(maxVal, matrix[s][c]); }));
+
+  return `
+    <div class="heatmap-wrap">
+      <table class="heatmap">
+        <thead>
+          <tr>
+            <th class="hm-corner">Estado / Rede</th>
+            ${topChains.map(c=>`<th>${c}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${states.map(s=>`
+            <tr>
+              <th class="hm-row-label">${s}</th>
+              ${topChains.map(c=>{
+                const v = matrix[s][c];
+                const a = v ? (0.12 + 0.78 * (v/maxVal)).toFixed(2) : 0;
+                return `<td class="hm-cell" style="background:rgba(202,161,42,${a}); color:${v/maxVal>0.55?'#3a2a18':'var(--ink-dim)'}">${v || '·'}</td>`;
+              }).join('')}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function dayContentHTML(day, DAY_LABEL){
+  const stores = currentRows.filter(r=>r.days.includes(day));
+  if(!stores.length) return `<div class="rd-empty-full">Nenhuma loja com visita programada para ${DAY_LABEL[day]}.</div>`;
+  return agencyAccordionHTML(stores);
+}
+
+function selectRoteiroDay(day, DAY_LABEL){
+  roteiroDay = day;
+  document.querySelectorAll('.day-pill').forEach(p=>p.classList.toggle('active', p.dataset.day===day));
+  document.getElementById('roteiroContent').innerHTML = dayContentHTML(day, DAY_LABEL);
+}
+
+// ---------- Análise de ritmo de visitas ----------
+// Para cada loja, calcula o intervalo (em dias) entre as visitas programadas na
+// semana (de forma cíclica) e compara a MEDIANA desses intervalos com o
+// intervalo ideal (7 dias / nº de visitas semanais). Quanto maior o desvio,
+// mais irregular é o ritmo — sinal de que a frequência pode precisar de ajuste.
+const DAY_INDEX = {SEG:0,TER:1,QUA:2,QUI:3,SEX:4,SAB:5,DOM:6};
+
+function median(arr){
+  if(!arr.length) return null;
+  const s = [...arr].sort((a,b)=>a-b);
+  const mid = Math.floor(s.length/2);
+  return s.length % 2 ? s[mid] : (s[mid-1]+s[mid])/2;
+}
+
+function visitGaps(days){
+  if(!days || !days.length) return [];
+  const idx = [...new Set(days.map(d=>DAY_INDEX[d]))].sort((a,b)=>a-b);
+  if(idx.length === 1) return [7];
+  const gaps = [];
+  for(let i=0;i<idx.length;i++){
+    const next = idx[(i+1)%idx.length];
+    let g = next - idx[i];
+    if(g <= 0) g += 7;
+    gaps.push(g);
+  }
+  return gaps;
+}
+
+function rhythmFor(row){
+  const gaps = visitGaps(row.days);
+  if(!gaps.length || !row.visitsWeek) return null;
+  const med = median(gaps);
+  const maxGap = Math.max(...gaps);
+  const ideal = 7 / row.visitsWeek;
+  // o que mais importa na rotina de campo é o MAIOR período sem visita, não a média:
+  // duas visitas/semana muito próximas uma da outra deixam um buraco grande depois.
+  const deviation = maxGap - ideal;
+  const status = deviation > 2 ? 'attention' : 'ok';
+  return {med, maxGap, ideal, deviation, status};
+}
+
+function analysisPanelHTML(rows){
+  const analyzed = rows.map(r=>({row:r, rhythm: rhythmFor(r)})).filter(x=>x.rhythm);
+  if(!analyzed.length){
+    return `<div class="rd-empty-full">Não há dados de dias de visita suficientes para calcular o ritmo nesta aba.</div>`;
+  }
+  const attention = analyzed.filter(x=>x.rhythm.status==='attention').sort((a,b)=>b.rhythm.deviation-a.rhythm.deviation);
+  const ok = analyzed.filter(x=>x.rhythm.status==='ok').sort((a,b)=>a.rhythm.deviation-b.rhythm.deviation);
+
+  const itemHTML = (x)=>`
+    <div class="rhythm-item">
+      <span class="ri-store">${x.row.store}</span>
+      <span class="ri-meta">${x.row.agency} · visita a cada <b>${x.rhythm.med}d</b> (ideal ~${x.rhythm.ideal.toFixed(1)}d) · até <b>${x.rhythm.maxGap}d</b> sem visitar</span>
+    </div>`;
+
+  return `
+    <div class="rhythm-kpis">
+      <div class="rk"><span class="rk-n" style="color:var(--terra)">${attention.length}</span><span class="rk-l">precisam de atenção</span></div>
+      <div class="rk"><span class="rk-n" style="color:var(--green)">${ok.length}</span><span class="rk-l">ritmo equilibrado</span></div>
+      <div class="rk"><span class="rk-n">${analyzed.length}</span><span class="rk-l">lojas analisadas</span></div>
+    </div>
+    <div class="accordion">
+      <details class="acc-item" open>
+        <summary><span>⚠️ Ritmo desigual — pode precisar de reajuste</span><span class="acc-count">${attention.length} loja${attention.length!==1?'s':''}</span></summary>
+        <div class="acc-body rhythm-body">
+          ${attention.length ? attention.map(itemHTML).join('') : `<div class="rd-empty-full">Nenhuma loja fora do padrão nesta aba.</div>`}
+        </div>
+      </details>
+      <details class="acc-item">
+        <summary><span>✅ Ritmo equilibrado</span><span class="acc-count">${ok.length} loja${ok.length!==1?'s':''}</span></summary>
+        <div class="acc-body rhythm-body">
+          ${ok.length ? ok.map(itemHTML).join('') : `<div class="rd-empty-full">Nenhuma loja nesta categoria.</div>`}
+        </div>
+      </details>
+    </div>
+  `;
+}
+
+function renderState(stateName){
+  const data = STATE[stateName];
+  currentRows = data.rows;
+  tableState = {query:'', agency:'ALL', page:0, pageSize:12};
+
+  const totalLojas = currentRows.length;
+  const totalVisitasMes = currentRows.reduce((s,r)=>s+ (r.visitsMonth||0), 0);
+  const agencies = [...new Set(currentRows.map(r=>r.agency))];
+  const chains = [...new Set(currentRows.map(r=>r.chain))];
+
+  const byAgency = {};
+  currentRows.forEach(r=>{ byAgency[r.agency] = (byAgency[r.agency]||0) + (r.visitsMonth||0); });
+  const agencyEntries = Object.entries(byAgency).sort((a,b)=>b[1]-a[1]);
+  const maxAgencyVal = agencyEntries.length ? agencyEntries[0][1] : 1;
+
+  const byChain = {};
+  currentRows.forEach(r=>{ byChain[r.chain] = (byChain[r.chain]||0) + 1; });
+  const chainEntries = Object.entries(byChain).sort((a,b)=>b[1]-a[1]);
+  const chainTotal = chainEntries.reduce((s,e)=>s+e[1],0) || 1;
+
+  const byDay = {SEG:0,TER:0,QUA:0,QUI:0,SEX:0,SAB:0,DOM:0};
+  currentRows.forEach(r=>{ r.days.forEach(d=>{ byDay[d] = (byDay[d]||0)+1; }); });
+  const maxDay = Math.max(1, ...Object.values(byDay));
+
+  const avgVisitsPerStore = totalLojas ? (totalVisitasMes/totalLojas).toFixed(1) : '0';
+
+  const DAY_LABEL = {SEG:'Segunda',TER:'Terça',QUA:'Quarta',QUI:'Quinta',SEX:'Sexta',SAB:'Sábado',DOM:'Domingo'};
+  const JS_DAY_TO_CODE = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+  const todayCode = JS_DAY_TO_CODE[new Date().getDay()];
+  const todayStores = currentRows.filter(r => r.days.includes(todayCode));
+  roteiroDay = todayCode;
+
+  const html = `
+    <div class="info-note">
+      <span>ℹ️</span>
+      <span>Mostrando <b>${stateName}</b>: ${agencyEntries.length} agência${agencyEntries.length!==1?'s':''} de promotoria, ${chains.length} rede${chains.length!==1?'s':''}/bandeiras e ${totalLojas} lojas atendidas, lidos diretamente das tabelas de cobertura da aba.</span>
+    </div>
+
+    <div class="today-banner">
+      <div class="tb-head">
+        <h3>📍 Visitas de hoje — ${DAY_LABEL[todayCode]}</h3>
+        <span class="tb-sub">${todayStores.length} loja${todayStores.length!==1?'s':''} programada${todayStores.length!==1?'s':''} para visita</span>
+      </div>
+      ${todayStores.length ? agencyAccordionHTML(todayStores) : `<span class="today-empty">Nenhuma loja com rota marcada para hoje nesta aba.</span>`}
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <h3>Roteiro semanal <span class="tag">LOJAS POR DIA</span></h3>
+      <div class="day-pills">
+        ${DAY_ORDER.map(d=>{
+          const n = currentRows.filter(r=>r.days.includes(d)).length;
+          return `<div class="day-pill ${d===roteiroDay?'active':''} ${n===0?'is-empty':''}" data-day="${d}">${DAY_LABEL[d]}<span class="dp-n">${n}</span></div>`;
+        }).join('')}
+      </div>
+      <div id="roteiroContent">${dayContentHTML(roteiroDay, DAY_LABEL)}</div>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <h3>Análise de ritmo de visitas <span class="tag">MEDIANA DE INTERVALO × IDEAL</span></h3>
+      <p class="rhythm-explain">Para cada loja, calcula a <b>mediana do intervalo</b> entre visitas e o <b>maior período sem visita</b> na semana, comparando com o intervalo ideal (7 dias ÷ visitas/semana contratadas). Quando o maior intervalo sem visita supera o ideal em mais de 2 dias, a loja entra em atenção — sinal de que a distribuição dos dias pode precisar de ajuste.</p>
+      ${analysisPanelHTML(currentRows)}
+    </div>
+
+    <div class="kpis">
+      <div class="kpi" style="--accent:var(--gold-deep)">
+        <div class="label">Lojas atendidas</div>
+        <div class="value">${totalLojas}</div>
+        <div class="foot">${agencyEntries.length} agência${agencyEntries.length!==1?'s':''} de promotoria</div>
+      </div>
+      <div class="kpi" style="--accent:var(--terra)">
+        <div class="label">Visitas / mês (total)</div>
+        <div class="value">${totalVisitasMes.toLocaleString('pt-BR')}</div>
+        <div class="foot">soma de todas as lojas listadas</div>
+      </div>
+      <div class="kpi" style="--accent:var(--green)">
+        <div class="label">Média de visitas / loja</div>
+        <div class="value">${avgVisitsPerStore}</div>
+        <div class="foot">visitas mensais por loja</div>
+      </div>
+      <div class="kpi" style="--accent:var(--blue)">
+        <div class="label">Redes / bandeiras</div>
+        <div class="value">${chains.length}</div>
+        <div class="foot">identificadas pelo nome da loja</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Visitas/mês por agência <span class="tag">SOMA</span></h3>
+        ${agencyEntries.map(([name,val],i)=>`
+          <div class="bar-row">
+            <div class="name" title="${name}">${name}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${(val/maxAgencyVal*100).toFixed(1)}%; background:linear-gradient(90deg, ${PALETTE[i%PALETTE.length]}99, ${PALETTE[i%PALETTE.length]})"></div></div>
+            <div class="bar-val">${val.toLocaleString('pt-BR')}</div>
+          </div>`).join('')}
+      </div>
+      <div class="panel">
+        <h3>Lojas por rede <span class="tag">CONTAGEM</span></h3>
+        <div class="donut-wrap">
+          ${donutSVG(chainEntries, chainTotal)}
+          <div class="legend">
+            ${chainEntries.slice(0,8).map(([name,val])=>`
+              <div class="li"><span class="sw" style="background:${chainColor(name)}"></span>${name}<b>${val}</b></div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Frequência de visitas por dia da semana <span class="tag">CLIQUE NO DIA PARA VER AS LOJAS</span></h3>
+      <div class="week-grid">
+        ${DAY_ORDER.map(d=>`
+          <div class="week-cell ${byDay[d]===maxDay && maxDay>0 ? 'hot':''}" data-day="${d}" role="button" tabindex="0">
+            <div class="d">${d}</div>
+            <div class="v">${byDay[d]||0}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="panel table-panel">
+      <h3>Lojas atendidas — ${stateName} <span class="tag">${totalLojas} REGISTROS</span></h3>
+      <div class="table-controls">
+        <input class="search" id="searchInput" placeholder="Buscar por loja, agência ou rede...">
+        <select class="fsel" id="agencyFilter">
+          <option value="ALL">Todas as agências</option>
+          ${agencies.map(a=>`<option value="${a}">${a}</option>`).join('')}
+        </select>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Agência</th><th>Loja</th><th>Rede</th><th>Visitas/sem.</th><th>Visitas/mês</th><th>Dias</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="pager">
+        <span id="pagerInfo"></span>
+        <div style="display:flex; gap:8px;">
+          <button id="prevPage">← Anterior</button>
+          <button id="nextPage">Próxima →</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('content').innerHTML = html;
+
+  document.querySelectorAll('.day-pill').forEach(p=>{
+    p.addEventListener('click', ()=> selectRoteiroDay(p.dataset.day, DAY_LABEL));
+  });
+
+  document.querySelectorAll('.week-cell').forEach(cell=>{
+    const open = ()=>{
+      selectRoteiroDay(cell.dataset.day, DAY_LABEL);
+      document.getElementById('roteiroContent').scrollIntoView({behavior:'smooth', block:'center'});
+    };
+    cell.addEventListener('click', open);
+    cell.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); open(); } });
+  });
+
+  document.getElementById('searchInput').addEventListener('input', e=>{
+    tableState.query = e.target.value.toLowerCase(); tableState.page=0; renderTable();
+  });
+  document.getElementById('agencyFilter').addEventListener('change', e=>{
+    tableState.agency = e.target.value; tableState.page=0; renderTable();
+  });
+  document.getElementById('prevPage').addEventListener('click', ()=>{ if(tableState.page>0){tableState.page--; renderTable();}});
+  document.getElementById('nextPage').addEventListener('click', ()=>{ tableState.page++; renderTable(); });
+
+  renderTable();
+}
+
+function donutSVG(entries, total){
+  const r = 52, cx=60, cy=60, sw=20;
+  let acc = 0;
+  const circ = 2*Math.PI*r;
+  let paths = entries.slice(0,8).map(([name,val])=>{
+    const frac = val/total;
+    const dash = circ*frac;
+    const gap = circ - dash;
+    const offset = circ*0.25 - circ*acc;
+    acc += frac;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${chainColor(name)}" stroke-width="${sw}"
+      stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${offset}" transform="rotate(-90 ${cx} ${cy})" stroke-linecap="butt"/>`;
+  }).join('');
+  return `<svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0;">
+    ${paths}
+    <circle cx="${cx}" cy="${cy}" r="${r-sw/2-2}" fill="#ffffff"/>
+    <text x="60" y="56" text-anchor="middle" fill="#3a2a18" font-size="20" font-family="'Noto Sans', sans-serif" font-weight="800">${total}</text>
+    <text x="60" y="72" text-anchor="middle" fill="#a4926f" font-size="9" font-family="'Noto Sans', sans-serif">lojas</text>
+  </svg>`;
+}
+
+function renderTable(){
+  let rows = currentRows;
+  if(tableState.agency !== 'ALL') rows = rows.filter(r=>r.agency===tableState.agency);
+  if(tableState.query){
+    const q = tableState.query;
+    rows = rows.filter(r => r.store.toLowerCase().includes(q) || r.agency.toLowerCase().includes(q) || r.chain.toLowerCase().includes(q));
+  }
+  const pageSize = tableState.pageSize;
+  const totalPages = Math.max(1, Math.ceil(rows.length/pageSize));
+  if(tableState.page >= totalPages) tableState.page = totalPages-1;
+  const start = tableState.page*pageSize;
+  const pageRows = rows.slice(start, start+pageSize);
+
+  document.getElementById('tbody').innerHTML = pageRows.map(r=>{
+    const c = chainColor(r.chain);
+    return `
+    <tr>
+      <td>${r.agency}</td>
+      <td class="strong">${r.store}</td>
+      <td><span class="chip" style="--chip-bg:${c}26; --chip-fg:${c};">${r.chain}</span></td>
+      <td>${r.visitsWeek || '—'}</td>
+      <td>${r.visitsMonth || '—'}</td>
+      <td>${r.days.length ? r.days.join(' / ') : '—'}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="6" style="text-align:center; color:var(--ink-faint); padding:30px;">Nenhum resultado encontrado.</td></tr>`;
+
+  document.getElementById('pagerInfo').textContent = rows.length
+    ? `${start+1}–${Math.min(start+pageSize, rows.length)} de ${rows.length}`
+    : '0 de 0';
+  document.getElementById('prevPage').disabled = tableState.page===0;
+  document.getElementById('nextPage').disabled = start+pageSize>=rows.length;
+}
+</script>
+</body>
+</html>
