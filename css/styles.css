@@ -333,7 +333,7 @@
     .brand h1{font-size:16.5px;}
     .brand .sub{font-size:10px;}
     #headerRight{width:100%;}
-    #headerRight > div{width:100%; flex-wrap:wrap;}
+    #headerRight > div{width:100%; flex-wrap:wrap; justify-content:center;}
     .file-pill{font-size:11.5px; padding:7px 12px;}
     .btn{font-size:12px; padding:7px 14px; white-space:nowrap;}
   }
