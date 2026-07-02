@@ -20,8 +20,8 @@ function redeAccordionTableHTML(items, redeGetter, opts){
       <details class="acc-item" data-rede="${escHtml(rede)}" ${i===0?'open':''}>
         <summary><span class="rede-header">${chainChip(rede)}</span><span class="acc-count">${list.length} registro${list.length!==1?'s':''}</span></summary>
         <div class="acc-body" style="flex-direction:column;flex-wrap:nowrap;padding:12px 16px;">
-          <table class="rupt-table"><thead><tr>${opts.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
-          <tbody>${list.slice(0,pageSize).map(opts.rowHTML).join('')}</tbody></table>
+          <div class="table-scroll"><table class="rupt-table"><thead><tr>${opts.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+          <tbody>${list.slice(0,pageSize).map(opts.rowHTML).join('')}</tbody></table></div>
           ${list.length>pageSize?`<div style="font-size:11px;color:var(--ink-faint);margin-top:8px;">Mostrando ${pageSize} de ${list.length} — use a busca acima para refinar.</div>`:''}
         </div>
       </details>`).join('')}
@@ -55,7 +55,7 @@ function resumoIndicesRupturaHTML(){
   });
 
   return `
-    <div class="grid2" style="margin-bottom:18px; grid-template-columns:1fr 1fr 1fr;">
+    <div class="grid3">
       <div class="panel">
         <h3>Lojas <span class="tag">MAIS RUPTURAS</span></h3>
         ${topLojas.map(([loja,n])=>`<div class="bar-row"><div class="name" title="${escHtml(loja)}">${escHtml(loja)}</div><div class="bar-val" style="width:auto;">${n}</div></div>`).join('') || '<div class="empty-state"><span>✅</span>Sem rupturas.</div>'}
@@ -80,8 +80,8 @@ function statusCadastroProdutosHTML(){
     <div class="panel" style="margin-bottom:18px;">
       <h3>Status de cadastro de produtos <span class="tag">${rows.length} DE ${total} COM ATENÇÃO</span></h3>
       ${rows.length===0 ? `<div class="empty-state"><span>✅</span>Nenhum cadastro de produto com pendência sinalizada.</div>` : `
-        <table class="rupt-table"><thead><tr><th>Rede</th><th>Loja</th><th>Produto</th><th>Status</th></tr></thead>
-        <tbody>${rows.map(r=>`<tr><td>${chainChip(detectChainKnown(r.loja))}</td><td>${escHtml(r.loja)}</td><td>${escHtml(r.produto)}</td><td>${escHtml(r.status)}</td></tr>`).join('')}</tbody></table>`}
+        <div class="table-scroll"><table class="rupt-table"><thead><tr><th>Rede</th><th>Loja</th><th>Produto</th><th>Status</th></tr></thead>
+        <tbody>${rows.map(r=>`<tr><td>${chainChip(detectChainKnown(r.loja))}</td><td>${escHtml(r.loja)}</td><td>${escHtml(r.produto)}</td><td>${escHtml(r.status)}</td></tr>`).join('')}</tbody></table></div>`}
     </div>`;
 }
 
@@ -211,13 +211,13 @@ function correlacaoPorRedeHTML(){
     <div class="panel" style="margin-bottom:18px;">
       <h3>Correlação por rede — rupturas × devoluções <span class="tag">SEVERIDADE COMBINADA</span></h3>
       <p class="rhythm-explain">Rupturas e devoluções vêm de fontes diferentes (relatório de campo × financeiro/NF) e nem sempre escrevem o nome da loja da mesma forma — por isso a correlação mais confiável hoje é por rede, não por loja individual.</p>
-      <table class="rupt-table"><thead><tr><th>Rede</th><th>Rupturas</th><th>Valor devolvido</th><th>Severidade</th></tr></thead>
+      <div class="table-scroll"><table class="rupt-table"><thead><tr><th>Rede</th><th>Rupturas</th><th>Valor devolvido</th><th>Severidade</th></tr></thead>
       <tbody>${scored.map(s=>`<tr>
         <td>${chainChip(s.rede)}</td>
         <td>${s.rupturas}</td>
         <td style="font-family:var(--font-mono);color:var(--terra);">R$ ${s.devValor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
         <td><div class="sev-bar"><div class="sev-fill" style="width:${(s.score/maxScore*100).toFixed(0)}%"></div></div></td>
-      </tr>`).join('')}</tbody></table>
+      </tr>`).join('')}</tbody></table></div>
       ${overlapLojas.length ? `
         <p class="rhythm-explain" style="margin-top:16px;">Lojas com o mesmo nome identificado em ruptura <b>e</b> devolução: ${overlapLojas.map(escHtml).join(', ')}.</p>
       ` : ''}

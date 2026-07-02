@@ -522,6 +522,7 @@ function renderState(stateName){
           ${agencies.map(a=>`<option value="${a}">${a}</option>`).join('')}
         </select>
       </div>
+      <div class="table-scroll">
       <table>
         <thead>
           <tr>
@@ -530,6 +531,7 @@ function renderState(stateName){
         </thead>
         <tbody id="tbody"></tbody>
       </table>
+      </div>
       <div class="pager">
         <span id="pagerInfo"></span>
         <div style="display:flex; gap:8px;">

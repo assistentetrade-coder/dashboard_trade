@@ -197,14 +197,14 @@ function renderMonitorDashboard(){
       <div class="panel">
         <h3>Lojas abaixo de 80% <span class="tag">${lastMonth}</span></h3>
         ${belowTarget.length===0?`<div class="empty-state"><span>✅</span>Nenhuma loja abaixo de 80%.</div>`:`
-          <table class="compliance-table"><thead><tr><th>Loja</th><th>Dias</th><th>Real</th><th>Esp.</th><th>%</th></tr></thead><tbody>
+          <div class="table-scroll"><table class="compliance-table"><thead><tr><th>Loja</th><th>Dias</th><th>Real</th><th>Esp.</th><th>%</th></tr></thead><tbody>
           ${belowTarget.slice(0,12).map(r=>`<tr>
             <td class="ct-store">${r.name}</td>
             <td style="font-size:11px;">${r.dias}</td>
             <td>${r.actual}</td><td>${r.expected}</td>
             <td><div style="display:flex;align-items:center;gap:5px;"><div class="pct-bar"><div class="pct-fill ${r.pct<60?'lo':'mid'}" style="width:${r.pct}%"></div></div><span style="font-size:11px">${r.pct}%</span></div></td>
           </tr>`).join('')}
-          </tbody></table>`}
+          </tbody></table></div>`}
       </div>
       <div class="panel">
         <h3>Ultimas visitas registradas <span class="tag">PAINEL</span></h3>
@@ -230,7 +230,7 @@ function renderMonitorDashboard(){
     <div class="panel">
       <h3>Rupturas recentes (60 dias) <span class="tag">PLANILHA</span></h3>
       ${(()=>{const r=MONITORING.rupturas.filter(x=>{const d=new Date(x.data);return(Date.now()-d.getTime())/86400000<=60;}).slice(0,10);
-        return r.length===0?'<div class="empty-state"><span>✅</span>Nenhuma ruptura recente.</div>':`<table class="rupt-table"><thead><tr><th>Data</th><th>Rede</th><th>Loja</th><th>Produto</th></tr></thead><tbody>${r.map(x=>`<tr><td>${x.data}</td><td>${chainChip(detectChainKnown(x.loja))}</td><td>${x.loja}</td><td><span class="rupt-badge">${x.produto}</span></td></tr>`).join('')}</tbody></table>`;
+        return r.length===0?'<div class="empty-state"><span>✅</span>Nenhuma ruptura recente.</div>':`<div class="table-scroll"><table class="rupt-table"><thead><tr><th>Data</th><th>Rede</th><th>Loja</th><th>Produto</th></tr></thead><tbody>${r.map(x=>`<tr><td>${x.data}</td><td>${chainChip(detectChainKnown(x.loja))}</td><td>${x.loja}</td><td><span class="rupt-badge">${x.produto}</span></td></tr>`).join('')}</tbody></table></div>`;
       })()}
     </div>`;
 }

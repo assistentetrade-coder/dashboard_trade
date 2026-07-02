@@ -136,6 +136,7 @@
 
   /* ---------- grid panels ---------- */
   .grid2{display:grid; grid-template-columns:1.3fr 1fr; gap:18px; margin-bottom:18px;}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-bottom:18px;}
   .panel{
     background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:24px;
     box-shadow:0 1px 2px rgba(58,42,24,0.06), 0 1px 3px 1px rgba(58,42,24,0.05);
@@ -180,17 +181,17 @@
     background:var(--bg-soft); border:1px solid var(--line); border-radius:9px; color:var(--ink-dim);
     padding:10px 12px; font-size:13px; font-family:var(--font-body);
   }
-  table{width:100%; border-collapse:collapse; font-size:13px;}
+  table{width:100%; min-width:560px; border-collapse:collapse; font-size:13px;}
   thead th{
     text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.08em;
-    color:var(--ink-faint); padding:10px 12px; border-bottom:1px solid var(--line); font-weight:600;
+    color:var(--ink-faint); padding:10px 12px; border-bottom:1px solid var(--line); font-weight:600; white-space:nowrap;
   }
   tbody td{padding:10px 12px; border-bottom:1px solid var(--bg-soft); color:var(--ink-dim);}
   tbody tr:hover{background:#fbf6e8;}
   tbody td.strong{color:var(--brown); font-weight:700;}
   .loc-sub{display:block; font-size:10.5px; font-weight:400; color:var(--ink-faint); margin-top:2px;}
   .chip{
-    display:inline-block; padding:3px 11px; border-radius:8px; font-size:11px; font-weight:600;
+    display:inline-block; padding:3px 11px; border-radius:8px; font-size:11px; font-weight:600; white-space:nowrap;
     background:var(--chip-bg, #fbecc0); color:var(--chip-fg, #8a6612);
   }
   .pager{display:flex; justify-content:space-between; align-items:center; margin-top:14px; font-size:12.5px; color:var(--ink-faint);}
@@ -312,6 +313,7 @@
   @media (max-width:900px){
     .kpis{grid-template-columns:repeat(2,1fr);}
     .grid2{grid-template-columns:1fr;}
+    .grid3{grid-template-columns:1fr;}
     main{padding:0 18px 60px;}
     header.top{padding:16px 18px;}
     .day-pills{gap:5px;}
@@ -358,10 +360,10 @@
   .sub-nav-btn.active{ background:var(--brown); color:#fbf7ee; border-color:var(--brown); font-weight:600; }
   .visit-form{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:28px; }
   .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
-  .form-group{ display:flex; flex-direction:column; gap:6px; }
+  .form-group{ display:flex; flex-direction:column; gap:6px; min-width:0; }
   .form-group.full{ grid-column:1/-1; }
   .form-label{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); font-weight:600; }
-  .form-input,.form-select,.form-textarea{ background:var(--bg-soft); border:1px solid var(--line); border-radius:10px; padding:10px 13px; font-size:13.5px; color:var(--ink); font-family:var(--font-body); transition:border-color .15s; }
+  .form-input,.form-select,.form-textarea{ width:100%; max-width:100%; background:var(--bg-soft); border:1px solid var(--line); border-radius:10px; padding:10px 13px; font-size:13.5px; color:var(--ink); font-family:var(--font-body); transition:border-color .15s; }
   .form-input:focus,.form-select:focus,.form-textarea:focus{ outline:none; border-color:var(--gold-deep); }
   .form-textarea{ min-height:80px; resize:vertical; }
   .day-alert{ padding:10px 14px; border-radius:10px; font-size:13px; margin-top:6px; display:none; align-items:center; gap:8px; }
@@ -382,8 +384,13 @@
   .vc-tag.ruptura{ background:#fbe6dc; color:#a3401e; border-color:#f0c2ac; }
   .vc-tag.ok{ background:#d4f4e2; color:#1d5c34; border-color:#6dbd8d; }
   .vc-date{ font-size:11px; color:var(--ink-faint); white-space:nowrap; }
-  .compliance-table,.rupt-table{ width:100%; border-collapse:collapse; font-size:12.5px; }
-  .compliance-table th,.rupt-table th{ text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); padding:8px 10px; border-bottom:1px solid var(--line); font-weight:600; }
+  /* Contém a rolagem DENTRO do card em vez de deixar a tabela empurrar a
+     página inteira para o lado (o que quebrava o layout no celular quando
+     uma célula tinha um texto longo sem espaços, tipo um nome de produto
+     "A/B/C/D"). Em telas largas isso não muda nada visualmente. */
+  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .compliance-table,.rupt-table{ width:100%; min-width:340px; border-collapse:collapse; font-size:12.5px; }
+  .compliance-table th,.rupt-table th{ text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); padding:8px 10px; border-bottom:1px solid var(--line); font-weight:600; white-space:nowrap; }
   .compliance-table td,.rupt-table td{ padding:8px 10px; border-bottom:1px solid var(--bg-soft); color:var(--ink-dim); }
   .compliance-table tr:hover td,.rupt-table tr:hover td{ background:#fbf6e8; }
   .ct-store{ color:var(--brown); font-weight:600; }
@@ -392,9 +399,9 @@
   .pct-fill.hi{ background:var(--green); }
   .pct-fill.mid{ background:var(--gold-deep); }
   .pct-fill.lo{ background:var(--terra); }
-  .rupt-badge{ display:inline-block; padding:2px 8px; border-radius:14px; font-size:10.5px; font-weight:600; background:#fbe6dc; color:#a3401e; border:1px solid #f0c2ac; }
-  .crit-badge{ display:inline-block; padding:2px 8px; border-radius:14px; font-size:10.5px; font-weight:600; background:#fff3cd; color:#7a5c00; border:1px solid #f0c040; }
-  .dev-badge{ display:inline-block; padding:2px 8px; border-radius:14px; font-size:10.5px; font-weight:600; background:#fbe6dc; color:#a3401e; border:1px solid #f0c2ac; }
+  .rupt-badge{ display:inline-block; padding:2px 8px; border-radius:14px; font-size:10.5px; font-weight:600; background:#fbe6dc; color:#a3401e; border:1px solid #f0c2ac; overflow-wrap:anywhere; }
+  .crit-badge{ display:inline-block; padding:2px 8px; border-radius:14px; font-size:10.5px; font-weight:600; background:#fff3cd; color:#7a5c00; border:1px solid #f0c040; overflow-wrap:anywhere; }
+  .dev-badge{ display:inline-block; padding:2px 8px; border-radius:14px; font-size:10.5px; font-weight:600; background:#fbe6dc; color:#a3401e; border:1px solid #f0c2ac; overflow-wrap:anywhere; }
   .empty-state{ text-align:center; padding:40px 20px; color:var(--ink-faint); font-size:13.5px; }
   .empty-state span{ font-size:32px; display:block; margin-bottom:12px; }
   @media(max-width:700px){ .form-grid{grid-template-columns:1fr;} .main-nav{padding:0 18px;} }
