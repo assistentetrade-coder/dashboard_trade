@@ -27,7 +27,6 @@ function handleFile(file){
     const data = new Uint8Array(e.target.result);
     const wb = XLSX.read(data, {type:'array'});
     parseWorkbook(wb);
-    resetCoverageLookup();
     buildChainColorMap();
     document.getElementById('headerRight').innerHTML = `
       <div style="display:flex; gap:10px; align-items:center;">
@@ -301,41 +300,41 @@ function heatTemperatureColor(t){
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
+// Uma linha por estado, com chips de rede coloridos por temperatura — em vez de
+// uma matriz larga (que não cabe na tela do celular sem rolagem horizontal).
+// As chips quebram de linha naturalmente em qualquer largura.
 function heatmapHTML(states, rows){
   const chainTotals = {};
   rows.forEach(r=>{ chainTotals[r.chain] = (chainTotals[r.chain]||0)+1; });
-  const topChains = Object.entries(chainTotals).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]);
+  const topChains = new Set(Object.entries(chainTotals).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0]));
 
   const matrix = {};
-  states.forEach(s=>{ matrix[s] = {}; topChains.forEach(c=>{ matrix[s][c] = 0; }); });
-  rows.forEach(r=>{ if(topChains.includes(r.chain) && matrix[r.state]) matrix[r.state][r.chain]++; });
+  states.forEach(s=>{ matrix[s] = {}; });
+  rows.forEach(r=>{ if(topChains.has(r.chain) && matrix[r.state]) matrix[r.state][r.chain] = (matrix[r.state][r.chain]||0)+1; });
 
   let maxVal = 1;
-  states.forEach(s=>topChains.forEach(c=>{ maxVal = Math.max(maxVal, matrix[s][c]); }));
+  states.forEach(s=>Object.values(matrix[s]).forEach(v=>{ maxVal = Math.max(maxVal, v); }));
 
   return `
-    <div class="heatmap-wrap">
-      <table class="heatmap">
-        <thead>
-          <tr>
-            <th class="hm-corner">Estado / Rede</th>
-            ${topChains.map(c=>`<th>${c}</th>`).join('')}
-          </tr>
-        </thead>
-        <tbody>
-          ${states.map(s=>`
-            <tr>
-              <th class="hm-row-label">${s}</th>
-              ${topChains.map(c=>{
-                const v = matrix[s][c];
-                const t = v ? v/maxVal : 0;
-                const bg = v ? heatTemperatureColor(t) : 'var(--bg-soft)';
-                const textColor = v && t > 0.35 ? '#fff' : 'var(--ink-faint)';
-                return `<td class="hm-cell" style="background:${bg}; color:${textColor}">${v || '·'}</td>`;
-              }).join('')}
-            </tr>`).join('')}
-        </tbody>
-      </table>
+    <div class="heat-rows">
+      ${states.map(s=>{
+        const entries = Object.entries(matrix[s]).sort((a,b)=>b[1]-a[1]);
+        const total = entries.reduce((sum,[,v])=>sum+v, 0);
+        return `
+        <div class="heat-state-row">
+          <div class="heat-state-head">
+            <span class="heat-state-name">${s}</span>
+            <span class="heat-state-total">${total} loja${total!==1?'s':''} · top ${topChains.size} redes do país</span>
+          </div>
+          <div class="heat-chips">
+            ${entries.length ? entries.map(([chain,v])=>{
+              const bg = heatTemperatureColor(v/maxVal);
+              const textColor = contrastTextColor(bg);
+              return `<span class="heat-chip" style="background:${bg}; color:${textColor}"><b>${v}</b> ${chain}</span>`;
+            }).join('') : `<span class="heat-chip-empty">Nenhuma das redes mais atendidas do país está neste estado.</span>`}
+          </div>
+        </div>`;
+      }).join('')}
     </div>
     <div class="heat-legend">
       <span class="hl-label">Frio</span>
@@ -624,8 +623,6 @@ function renderTable(){
 function bootCoverage(){
   if(!EMBEDDED_STATE) return;
   STATE = EMBEDDED_STATE;
-  resetCoverageLookup();
-  buildChainColorMap();
   document.getElementById('dropzone').style.display = 'none';
   document.getElementById('appView').style.display = 'block';
   document.getElementById('headerRight').innerHTML = `

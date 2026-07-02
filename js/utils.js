@@ -9,6 +9,17 @@ const PALETTE = ['#caa12a','#c2693c','#7a9a52','#4c81a0','#8a6bb0','#e0b32b','#a
 
 function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+// Escolhe texto claro ou escuro a partir da luminância REAL de um "rgb(r,g,b)" —
+// necessário para escalas de cor não-monótonas (ex.: azul→amarelo→vermelho no mapa
+// de calor), onde nem "valor baixo" nem "valor alto" implicam fundo claro ou escuro.
+function contrastTextColor(rgbStr){
+  const m = /(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(rgbStr);
+  if(!m) return '#fff';
+  const [r,g,b] = [+m[1], +m[2], +m[3]];
+  const luminance = (0.299*r + 0.587*g + 0.114*b) / 255;
+  return luminance > 0.6 ? 'var(--brown-deep)' : '#fff';
+}
+
 // ---------- Cor por rede (única fonte de verdade para todo o painel) ----------
 // Calculada uma vez a partir de TODAS as redes conhecidas no painel: as da cobertura
 // (STATE, carregada por upload ou pré-embutida), as detectadas nos dados de

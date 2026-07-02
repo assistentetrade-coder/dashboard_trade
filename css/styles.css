@@ -222,16 +222,22 @@
   .sc-meta{display:flex; justify-content:space-between; gap:6px; font-size:10.5px; color:var(--ink-faint); flex-wrap:wrap;}
 
   /* ---------- mapa de calor ---------- */
-  .heatmap-wrap{overflow-x:auto;}
-  table.heatmap{border-collapse:separate; border-spacing:4px; font-size:11.5px;}
-  table.heatmap th{font-weight:600; color:var(--ink-faint); padding:6px 8px; text-align:center; white-space:nowrap;}
-  table.heatmap .hm-corner{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em;}
-  table.heatmap .hm-row-label{text-align:left; color:var(--brown); font-weight:700; white-space:nowrap; padding-right:14px;}
-  td.hm-cell{
-    width:46px; height:38px; text-align:center; border-radius:8px; font-weight:700;
-    font-family:var(--font-mono); transition:transform .1s ease;
+  /* Linhas por estado com chips de rede (em vez de uma matriz larga): não
+     depende de scroll horizontal, e as chips quebram de linha naturalmente
+     em qualquer largura de tela (o que uma tabela larga não faz no celular). */
+  .heat-rows{display:flex; flex-direction:column; gap:12px;}
+  .heat-state-row{border:1px solid var(--line); border-radius:12px; padding:13px 15px; background:var(--panel-2);}
+  .heat-state-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:10px;}
+  .heat-state-name{font-family:var(--font-display); font-weight:700; font-size:13.5px; color:var(--brown);}
+  .heat-state-total{font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); white-space:nowrap;}
+  .heat-chips{display:flex; flex-wrap:wrap; gap:7px;}
+  .heat-chip{
+    display:inline-flex; align-items:center; gap:5px; padding:5px 11px; border-radius:8px;
+    font-size:11.5px; font-weight:600; white-space:nowrap; transition:transform .1s ease;
   }
-  td.hm-cell:hover{transform:scale(1.08);}
+  .heat-chip:hover{transform:scale(1.05);}
+  .heat-chip b{font-family:var(--font-mono);}
+  .heat-chip-empty{font-size:12px; color:var(--ink-faint); font-style:italic;}
 
   .heat-legend{display:flex; align-items:center; gap:10px; margin-top:16px; flex-wrap:wrap;}
   .hl-label{font-size:10.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em;}
@@ -312,6 +318,24 @@
     .day-pill{padding:6px 11px; font-size:11.5px;}
     .week-grid{grid-template-columns:repeat(4,1fr);}
     .state-grid{grid-template-columns:1fr;}
+  }
+
+  /* ---------- topbar responsiva (celular) ---------- */
+  @media (max-width:640px){
+    header.top{
+      flex-direction:column; align-items:flex-start; gap:14px;
+      padding:16px 20px;
+    }
+    header.top::after{display:none;}
+    .brand{width:100%; flex-wrap:wrap; row-gap:10px;}
+    .brand .mark{height:30px;}
+    .brand .divider{display:none;}
+    .brand h1{font-size:16.5px;}
+    .brand .sub{font-size:10px;}
+    #headerRight{width:100%;}
+    #headerRight > div{width:100%; flex-wrap:wrap;}
+    .file-pill{font-size:11.5px; padding:7px 12px;}
+    .btn{font-size:12px; padding:7px 14px; white-space:nowrap;}
   }
 
   /* ===== MAIN NAVIGATION ===== */
